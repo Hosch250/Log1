@@ -24,7 +24,7 @@ public static class Program
         .ConfigureServices((_, services) =>
         {
             services.AddSingleton<IDependency, Dependency>();
-            services.AddMyServiceAsSingleton();
+            services.AddSingleton<MyService, Log1_MyServiceInterceptor>();
 
             services.AddTransient<Worker>();
         })
