@@ -5,61 +5,59 @@ namespace Log1;
 
 public static class JsonComparison
 {
-    public static bool CompareJson(JsonNode node1, JsonNode node2)
+    public static bool CompareJson(JsonNode expected, JsonNode actual)
     {
-        if (node1 is null || node2 is null)
+        if (expected is null || actual is null)
         {
             Console.WriteLine("Comparing to 'null' value");
             return false;
         }
 
-        if (node1 is JsonArray expectedArray && node2 is JsonArray actualArray)
+        if (expected is JsonArray expectedArray && actual is JsonArray actualArray)
         {
             return CompareJson(expectedArray, actualArray);
         }
-        else if (node1 is JsonObject expectedObject && node2 is JsonObject actualObject)
+        else if (expected is JsonObject expectedObject && actual is JsonObject actualObject)
         {
             return CompareJson(expectedObject, actualObject);
         }
-        else if (node1 is JsonValue &&
-            node2 is JsonValue &&
-            node1.GetValue<object>() is JsonElement expectedElement &&
-            node2.GetValue<object>() is JsonElement actualElement)
+        else if (expected is JsonValue &&
+            actual is JsonValue &&
+            expected.GetValue<object>() is JsonElement expectedElement &&
+            actual.GetValue<object>() is JsonElement actualElement)
         {
             return CompareJson(expectedElement, actualElement);
         }
         else
         {
-            throw new NotImplementedException($"Comparison not implemented for type {node1.GetType().FullName}");
+            throw new NotImplementedException($"Comparison not implemented for type {expected.GetType().FullName}");
         }
     }
 
-    public static bool CompareJson(JsonObject obj1, JsonObject obj2)
+    public static bool CompareJson(JsonObject expected, JsonObject actual)
     {
-        foreach (var item in obj1)
+        foreach (var item in expected)
         {
-            if (!obj2.ContainsKey(item.Key))
+            if (!actual.ContainsKey(item.Key))
             {
                 Console.WriteLine($"Missing key '{item.Key}'");
                 return false;
             }
 
-            var expected = obj1[item.Key];
-            var actual = obj2[item.Key];
+            var expectedNode = expected[item.Key];
+            var actualNode = actual[item.Key];
 
             // a json `null` literal gets returned as a `null` C# object
-            if (actual is null && expected is null)
+            if (expectedNode is null && actualNode is null)
             {
                 continue;
             }
-
-            if (actual is null)
+            else if (expectedNode is null || actualNode is null)
             {
-                Console.WriteLine("Actual value not found");
                 return false;
             }
 
-            if (expected!.GetType() != actual.GetType())
+            if (expectedNode.GetType() != actualNode.GetType())
             {
                 Console.WriteLine("Type mismatch");
                 return false;
@@ -75,13 +73,13 @@ public static class JsonComparison
         return true;
     }
 
-    public static bool CompareJson(JsonArray node1, JsonArray node2)
+    public static bool CompareJson(JsonArray expected, JsonArray actual)
     {
-        return node1.All(a => node2.Any(b => CompareJson(a!, b!)));
+        return expected.All(a => actual.Any(b => CompareJson(a!, b!)));
     }
 
-    public static bool CompareJson(JsonElement node1, JsonElement node2)
+    public static bool CompareJson(JsonElement expected, JsonElement actual)
     {
-        return node1.ValueKind == node2.ValueKind && node1.GetRawText() == node2.GetRawText();
+        return expected.ValueKind == actual.ValueKind && expected.GetRawText() == actual.GetRawText();
     }
 }
