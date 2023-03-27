@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Log1\Log1.csproj" />
+    <ProjectReference Include="..\Log1\Log1.csproj" OutputItemType="Analyzer" />
   </ItemGroup>
 
   <ItemGroup>
