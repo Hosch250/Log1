@@ -25,7 +25,7 @@ namespace Log1
 using Microsoft.Extensions.Configuration;
 using Log1;
 
-namespace {{ServiceNamespace}}.Generated;
+namespace {{ServiceNamespace}};
 
 public class Log1_{{ServiceName}}Interceptor{{GenericArgs}} : {{ServiceName}}{{GenericArgs}}
 {
@@ -113,8 +113,8 @@ public class Log1_{{ServiceName}}Interceptor{{GenericArgs}} : {{ServiceName}}{{G
             {
                 ServiceName = serviceType.Name,
                 ServiceNamespace = serviceType.ContainingNamespace.ToDisplayString() == "<global namespace>"
-                    ? "Main"
-                    : serviceType.ContainingNamespace.ToDisplayString(),
+                    ? "Generated"
+                    : serviceType.ContainingNamespace.ToDisplayString() + ".Generated",
                 GenericArgs = serviceType.TypeArguments.Any()
                     ? '<' + string.Join(", ", serviceType.TypeArguments.Select(s => s.ToDisplayString())) + '>'
                     : string.Empty,
