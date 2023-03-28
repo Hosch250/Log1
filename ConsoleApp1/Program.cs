@@ -4,7 +4,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-
 public interface IDependency { }
 public class Dependency : IDependency { }
 
@@ -84,7 +83,8 @@ public static class Program
         .ConfigureServices((_, services) =>
         {
             services.AddSingleton<IDependency, Dependency>();
-            //services.AddSingleton<MyService, Log1_MyServiceInterceptor>();
+            services.AddSingleton<MyService<int>, Main.Generated.Log1_MyServiceInterceptor<int>>();
+            services.AddSingleton<IConfigurationReader, ConfigurationReader>();
 
             services.AddTransient<Worker>();
         })

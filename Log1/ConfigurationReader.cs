@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using System.Text.Json.Nodes;
 
 namespace Log1
@@ -20,8 +19,8 @@ namespace Log1
 
         public JsonNode ReadConfiguration(string path)
         {
-            var configValue = configuration.GetValue<string>(path);
-            return JsonNode.Parse(configValue);
+            var configValue = configuration.GetValue<string>("Log1:" + path);
+            return configValue is null ? null : JsonNode.Parse(configValue);
         }
     }
 }

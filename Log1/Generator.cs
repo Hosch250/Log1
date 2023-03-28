@@ -14,6 +14,7 @@ namespace Log1
         private struct ClassArgs
         {
             public string ServiceName { get; set; }
+            public string ServiceNamespace { get; set; }
             public string GenericArgs { get; set; }
             public string CtorParams { get; set; }
             public string BaseCtorArgs { get; set; }
@@ -23,13 +24,15 @@ namespace Log1
         private const string classTemplate = @"using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using Log1;
-        
+
+namespace {{ServiceNamespace}}.Generated;
+
 public class Log1_{{ServiceName}}Interceptor{{GenericArgs}} : {{ServiceName}}{{GenericArgs}}
 {
-    private readonly ILogger log1_logger;
+    private readonly ILogger<Log1_{{ServiceName}}Interceptor{{GenericArgs}}> log1_logger;
     private readonly IConfigurationReader log1_configurationReader;
 
-    public Log1_{{ServiceName}}Interceptor(ILogger log1_logger, IConfigurationReader log1_configurationReader{{CtorParams}})
+    public Log1_{{ServiceName}}Interceptor(ILogger<Log1_{{ServiceName}}Interceptor{{GenericArgs}}> log1_logger, IConfigurationReader log1_configurationReader{{CtorParams}})
         : base({{BaseCtorArgs}})
     {
         this.log1_logger = log1_logger;
@@ -109,6 +112,9 @@ public class Log1_{{ServiceName}}Interceptor{{GenericArgs}} : {{ServiceName}}{{G
             var classArgs = new ClassArgs
             {
                 ServiceName = serviceType.Name,
+                ServiceNamespace = serviceType.ContainingNamespace.ToDisplayString() == "<global namespace>"
+                    ? "Main"
+                    : serviceType.ContainingNamespace.ToDisplayString(),
                 GenericArgs = serviceType.TypeArguments.Any()
                     ? '<' + string.Join(", ", serviceType.TypeArguments.Select(s => s.ToDisplayString())) + '>'
                     : string.Empty,
@@ -121,6 +127,7 @@ public class Log1_{{ServiceName}}Interceptor{{GenericArgs}} : {{ServiceName}}{{G
 
             return classTemplate
                 .Replace("{{ServiceName}}", classArgs.ServiceName)
+                .Replace("{{ServiceNamespace}}", classArgs.ServiceNamespace)
                 .Replace("{{GenericArgs}}", classArgs.GenericArgs)
                 .Replace("{{CtorParams}}", classArgs.CtorParams)
                 .Replace("{{BaseCtorArgs}}", classArgs.BaseCtorArgs)
