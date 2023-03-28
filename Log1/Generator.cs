@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System;
 
 namespace Log1
 {
@@ -15,6 +14,7 @@ namespace Log1
         private struct ClassArgs
         {
             public string ServiceName { get; set; }
+            public string GenericArgs { get; set; }
             public string CtorParams { get; set; }
             public string BaseCtorArgs { get; set; }
             public string Methods { get; set; }
@@ -24,17 +24,16 @@ namespace Log1
 using Microsoft.Extensions.Configuration;
 using Log1;
         
-public class Log1_{{ServiceName}}Interceptor : {{ServiceName}}
+public class Log1_{{ServiceName}}Interceptor{{GenericArgs}} : {{ServiceName}}{{GenericArgs}}
 {
+    private readonly ILogger log1_logger;
+    private readonly IConfigurationReader log1_configurationReader;
 
-    private readonly ILogger<Log1_{{ServiceName}}Interceptor> log1_logger;
-    private readonly IConfiguration log1_configuration;
-
-    public Log1_{{ServiceName}}Interceptor(ILogger<Log1_{{ServiceName}}Interceptor> log1_logger, IConfiguration log1_configuration{{CtorParams}})
+    public Log1_{{ServiceName}}Interceptor(ILogger log1_logger, IConfigurationReader log1_configurationReader{{CtorParams}})
         : base({{BaseCtorArgs}})
     {
         this.log1_logger = log1_logger;
-        this.log1_configuration = log1_configuration;
+        this.log1_configurationReader = log1_configurationReader;
     }
 
 {{Methods}}
@@ -44,6 +43,7 @@ public class Log1_{{ServiceName}}Interceptor : {{ServiceName}}
         {
             public string ServiceType { get; set; }
             public string MethodName { get; set; }
+            public string GenericArgs { get; set; }
             public string MethodType { get; set; }
             public string LogLevel { get; set; }
             public string MethodParams { get; set; }
@@ -54,14 +54,15 @@ public class Log1_{{ServiceName}}Interceptor : {{ServiceName}}
             public string ReturnStatement => MethodType == "void" ? "" : "return returnValue;";
         }
 
-        private const string methodTemplate = @"    public override {{MethodType}} {{MethodName}}({{MethodParams}})
+        private const string methodTemplate = @"    public override {{MethodType}} {{MethodName}}{{GenericArgs}}({{MethodParams}})
     {
         var parameters = new Dictionary<string, object>
         {
 {{KVPMethodArgs}}
         };
 
-        var logConditionsMet = log1_configuration.EvaluateConfiguration(typeof({{ServiceType}}), nameof({{MethodName}}), parameters);
+        var config = log1_configurationReader.ReadConfiguration(""{{ServiceType}}.{{MethodName}}{{GenericArgs}}"");
+        var logConditionsMet = config.Matches(parameters);
 
         if (logConditionsMet)
         {
@@ -69,7 +70,7 @@ public class Log1_{{ServiceName}}Interceptor : {{ServiceName}}
             log1_logger.LogCall({{LogLevel}}, parameters);
         }
 
-        {{ReturnAssignment}}base.{{MethodName}}({{BaseMethodArgs}});
+        {{ReturnAssignment}}base.{{MethodName}}{{GenericArgs}}({{BaseMethodArgs}});
 
         if (logConditionsMet)
         {
@@ -85,7 +86,7 @@ public class Log1_{{ServiceName}}Interceptor : {{ServiceName}}
             foreach (var declaration in methods.GroupBy(g => g.ContainingType, SymbolEqualityComparer.Default))
             {
                 var file = BuildClass(declaration.ToImmutableArray());
-                context.AddSource($"Log1_{methods.First().ContainingType.Name}Interceptor.g.cs", file);
+                context.AddSource($"Log1_{declaration.First().ContainingType.Name}Interceptor.g.cs", file);
             }
         }
 
@@ -93,10 +94,10 @@ public class Log1_{{ServiceName}}Interceptor : {{ServiceName}}
         {
             // No initialization required for this one
 #if DEBUG
-        if (!Debugger.IsAttached)
-        {
-            //Debugger.Launch();
-        }
+            if (!Debugger.IsAttached)
+            {
+                //Debugger.Launch();
+            }
 #endif
         }
 
@@ -108,13 +109,19 @@ public class Log1_{{ServiceName}}Interceptor : {{ServiceName}}
             var classArgs = new ClassArgs
             {
                 ServiceName = serviceType.Name,
-                CtorParams = ", " + string.Join(", ", constructor.Parameters.Select(s => s.Type.ToDisplayString() + " " + s.Name)),
+                GenericArgs = serviceType.TypeArguments.Any()
+                    ? '<' + string.Join(", ", serviceType.TypeArguments.Select(s => s.ToDisplayString())) + '>'
+                    : string.Empty,
+                CtorParams = constructor.Parameters.Any()
+                    ? ", " + string.Join(", ", constructor.Parameters.Select(s => s.Type.ToDisplayString() + " " + s.Name))
+                    : string.Empty,
                 BaseCtorArgs = string.Join(", ", constructor.Parameters.Select(s => s.Name)),
                 Methods = string.Join($"\n\n", methods.Select(BuildMethod))
             };
 
             return classTemplate
                 .Replace("{{ServiceName}}", classArgs.ServiceName)
+                .Replace("{{GenericArgs}}", classArgs.GenericArgs)
                 .Replace("{{CtorParams}}", classArgs.CtorParams)
                 .Replace("{{BaseCtorArgs}}", classArgs.BaseCtorArgs)
                 .Replace("{{Methods}}", classArgs.Methods);
@@ -135,8 +142,11 @@ public class Log1_{{ServiceName}}Interceptor : {{ServiceName}}
             var methodArgs = new MethodArgs
             {
                 MethodName = method.Name,
+                GenericArgs = method.TypeParameters.Any()
+                    ? '<' + string.Join(", ", method.TypeParameters.Select(p => p.Name)) + '>'
+                    : string.Empty,
                 MethodType = method.ReturnsVoid ? "void" : method.ReturnType.ToDisplayString(),
-                ServiceType = method.ContainingType.Name,
+                ServiceType = method.ContainingType.ToDisplayString(),
                 LogLevel = logLevelValue ?? "Microsoft.Extensions.Logging.LogLevel.Information",
                 MethodParams = string.Join(", ", method.Parameters.Select(s => s.Type.ToDisplayString() + " " + s.Name)),
                 BaseMethodArgs = string.Join(", ", method.Parameters.Select(s => s.Name)),
@@ -145,6 +155,7 @@ public class Log1_{{ServiceName}}Interceptor : {{ServiceName}}
 
             return methodTemplate
                 .Replace("{{MethodName}}", methodArgs.MethodName)
+                .Replace("{{GenericArgs}}", methodArgs.GenericArgs)
                 .Replace("{{MethodType}}", methodArgs.MethodType)
                 .Replace("{{ServiceType}}", methodArgs.ServiceType)
                 .Replace("{{LogLevel}}", methodArgs.LogLevel)

@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 public interface IDependency { }
 public class Dependency : IDependency { }
 
-public class MyService
+public class MyService<T>
 {
     private readonly IDependency dependency;
 
@@ -20,7 +20,7 @@ public class MyService
 
     // expected outcome: `Method DoSomething was called at <datetime>`
     [Log1]
-    public virtual void DoSomething()
+    public virtual void DoSomething<T1>()
     {
 
     }
@@ -51,6 +51,16 @@ public class MyService
     public virtual List<int> ListReturnType(List<int> a)
     {
         return a;
+    }
+}
+
+public class MyService1
+{
+    // expected outcome: `Method DoSomething was called at <datetime>`
+    [Log1]
+    public virtual void DoSomething()
+    {
+
     }
 }
 
@@ -87,16 +97,16 @@ public static class Program
 
 public class Worker
 {
-    private readonly MyService service;
+    private readonly MyService<int> service;
 
-    public Worker(MyService service)
+    public Worker(MyService<int> service)
     {
         this.service = service;
     }
 
     public Task Execute()
     {
-        service.DoSomething();
+        service.DoSomething<int>();
         service.DoSomethingElse(true, 3, new() { 1, 2, 3 });
         service.DisableLogging();
         service.ConditionalLogging(1);
