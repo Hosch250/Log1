@@ -11,7 +11,6 @@ namespace Log1
         {
             if (expected is null || actual is null)
             {
-                Console.WriteLine("Comparing to 'null' value");
                 return false;
             }
 
@@ -42,7 +41,6 @@ namespace Log1
             {
                 if (!actual.ContainsKey(item.Key))
                 {
-                    Console.WriteLine($"Missing key '{item.Key}'");
                     return false;
                 }
 
@@ -61,7 +59,6 @@ namespace Log1
 
                 if (expectedNode.GetType() != actualNode.GetType())
                 {
-                    Console.WriteLine("Type mismatch");
                     return false;
                 }
 

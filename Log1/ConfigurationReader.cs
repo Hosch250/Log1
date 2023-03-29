@@ -1,11 +1,13 @@
 ﻿using Microsoft.Extensions.Configuration;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json.Nodes;
 
 namespace Log1
 {
     public interface IConfigurationReader
     {
-        JsonNode ReadConfiguration(string path);
+        IReadOnlyList<JsonNode> ReadConfiguration(string path);
     }
 
     public class ConfigurationReader : IConfigurationReader
@@ -17,10 +19,33 @@ namespace Log1
             this.configuration = configuration;
         }
 
-        public JsonNode ReadConfiguration(string path)
+        public IReadOnlyList<JsonNode> ReadConfiguration(string path)
         {
-            var configValue = configuration.GetValue<string>("Log1:" + path);
-            return configValue is null ? null : JsonNode.Parse(configValue);
+            var configValues = configuration.GetSection("Log1:" + path).Get<string[]>();
+            if (configValues is null)
+            {
+                var configValue = configuration.GetValue<string>("Log1:" + path);
+                if (!(configValue is null))
+                {
+                    configValues = new[]
+                    {
+                        configValue
+                    };
+                }
+            }
+
+            return configValues is null ? new List<JsonNode>() : configValues.Select(s => {
+                try
+                {
+                    return JsonNode.Parse(s);
+                }
+                catch
+                {
+                    return null;
+                }
+            })
+            .Where(w => !(w is null))
+            .ToList();
         }
     }
 }

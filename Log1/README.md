@@ -38,7 +38,28 @@ To further configure this logging, add JSON patterns for your code to match agai
 
 These patterns will be matched explicitly against the arguments passed into the function, and no logs will be created if the arguments do not match. Note that any values left out will not be compared against passed in args, whether at the root level or as a nested property. Note that no configuration means logs are always created.
 
+Arrays work as well as individual patterns. If an array of patterns is provided, each pattern will be checked and the logs be created if any of the patterns match the provided arguments:
+```
+{
+    "Log1": {
+        "MyNamespace.MyService.DoSomething": [
+            "{ \"a\": 1 }",
+            "{ \"a\": 2 }"
+        ]
+    }
+}
+```
+
 Because the project is designed to allow turning focused logs on and off quickly, it might not make sense to put your configuration in source control. Putting it in an environment variable is one option, but that will likely still require a deploy to refresh the settings the app is using. This is the reason the `IConfigurationReader` interface is exposed: advanced users might want to connect this to an API such as `LaunchDarkly` and toggle their logs on and off as needed.
+
+If you need to turn off all logging for a particular function, just set an argument that does not exist as the required pattern:
+```
+{
+    "Log1": {
+        "MyNamespace.MyService.DoSomething": "{ "x": 1 }"
+    }
+}
+```
 
 ## The Meatgrinder
 

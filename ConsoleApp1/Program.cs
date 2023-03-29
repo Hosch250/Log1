@@ -83,7 +83,7 @@ public static class Program
         .ConfigureServices((_, services) =>
         {
             services.AddSingleton<IDependency, Dependency>();
-            services.AddSingleton<MyService<int>, Main.Generated.Log1_MyServiceInterceptor<int>>();
+            services.AddSingleton<MyService<int>, Generated.Log1_MyServiceInterceptor<int>>();
             services.AddSingleton<IConfigurationReader, ConfigurationReader>();
 
             services.AddTransient<Worker>();
