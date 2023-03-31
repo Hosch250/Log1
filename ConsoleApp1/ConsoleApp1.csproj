@@ -10,15 +10,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Log1" Version="1.0.1" OutputItemType="Analyzer" />
+    <!-- <PackageReference Include="Log1" Version="1.0.1" OutputItemType="Analyzer" /> -->
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.1" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="7.0.0" />
   </ItemGroup>
 
-  <!--<ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\Log1\Log1.csproj" OutputItemType="Analyzer" />
-  </ItemGroup>-->
+  </ItemGroup>
 
   <ItemGroup>
     <None Update="appSettings.json">
