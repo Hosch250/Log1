@@ -28,7 +28,7 @@ jobs:
       run: dotnet test --no-restore --verbosity normal
 
     - name: Pack
-      run: dotnet pack -c Release
+      run: dotnet pack -c Release -p:PackageVersion=$GITHUB_RUN_ID
 
     - name: Push NuGet Package
       run: dotnet nuget push Log1/bin/Release/*.nupkg -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json
