@@ -11,7 +11,7 @@ namespace Log1
         {
             if (expected is null || !expected.Any())
             {
-                return true;
+                return false;
             }
 
             var actual = JsonNode.Parse(JsonSerializer.Serialize(args));

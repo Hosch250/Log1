@@ -154,7 +154,7 @@ public class Log1_{{ServiceName}}Interceptor{{GenericArgs}} : {{ServiceName}}{{G
                     : string.Empty,
                 MethodType = method.ReturnsVoid ? "void" : method.ReturnType.ToDisplayString(),
                 ServiceType = method.ContainingType.ToDisplayString(),
-                LogLevel = logLevelValue ?? "Microsoft.Extensions.Logging.LogLevel.Information",
+                LogLevel = logLevelValue ?? "Microsoft.Extensions.Logging.LogLevel.Debug",
                 MethodParams = string.Join(", ", method.Parameters.Select(s => s.Type.ToDisplayString() + " " + s.Name)),
                 BaseMethodArgs = string.Join(", ", method.Parameters.Select(s => s.Name)),
                 KVPMethodArgs = string.Join("", method.Parameters.Select(s => $"            [nameof({s.Name})] = {s.Name},\n"))

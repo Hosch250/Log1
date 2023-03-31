@@ -4,7 +4,7 @@ Log1 is a utility that enables easily toggling logging input and output paramete
 
 ## Usage
 
-First, create your type and implement it normally, but add the `Log1` attribute and `virtual` keyword to the function you wish to enable logging on. Note that you can override the default log level of `Information` in the attribute.
+First, create your type and implement it normally, but add the `Log1` attribute and `virtual` keyword to the function you wish to enable logging on. Note that you can override the default log level of `Debug` in the attribute.
 ```
 namespace MyNamespace;
 
@@ -20,14 +20,15 @@ public class MyService
 }
 ```
 
-Next, register an `IConfigurationReader` instance with your dependency injection system; a default version reading from the `IConfiguration` source is provided for your convenience:
+Next, register an `IConfigurationReader` instance with your dependency injection system; a default version reading from the `IConfiguration` source is provided for your convenience. Also, register your services with the interceptor implementation provided by the source generator:
 ```
-services.AddSingleton<IConfigurationReader, ConfigurationReader>()
+services.AddSingleton<Log1.IConfigurationReader, Log1.ConfigurationReader>();
+services.AddSingleton<MyNamespace.MyService, MyNamespace.Generated.MyService>();
 ```
 
 Now you are all set up, and when you run your code, a message containing the function name, timestamp of the call, and arguments will be logged when you call the function, and the function name, timestamp of the response, and response value will be logged when the function returns.
 
-To further configure this logging, add JSON patterns for your code to match against to your configuration file (normally `appSettings.json`). These will be placed under the `Log1` section, and will be matched to the called function by the fully qualified name:
+To enable the logs, add JSON patterns for your code to match against to your configuration file (normally `appSettings.json`). These will be placed under the `Log1` section, and will be matched to the called function by the fully qualified name:
 ```
 {
     "Log1": {
@@ -36,7 +37,9 @@ To further configure this logging, add JSON patterns for your code to match agai
 }
 ```
 
-These patterns will be matched explicitly against the arguments passed into the function, and no logs will be created if the arguments do not match. Note that any values left out will not be compared against passed in args, whether at the root level or as a nested property. Note that no configuration means logs are always created.
+These patterns will be matched explicitly against the arguments passed into the function, and no logs will be created if the arguments do not match. Note that any values left out will not be compared against passed in args, whether at the root level or as a nested property.
+
+Note that no configuration means that no logs are created to reduce the number of logs produced. To always enable logging for a function, set the configuration to `{}`. You may also need to enable debug logs for your values to displayed or saved; note in the example below I explicitly set the common hosts to allow only `Information` or higher level logs to avoid spamming useless values.
 
 Arrays work as well as individual patterns. If an array of patterns is provided, each pattern will be checked and the logs be created if any of the patterns match the provided arguments:
 ```
@@ -46,6 +49,13 @@ Arrays work as well as individual patterns. If an array of patterns is provided,
             "{ \"a\": 1 }",
             "{ \"a\": 2 }"
         ]
+    },
+    "Logging": {
+        "LogLevel": {
+            "Default": "Debug",
+            "Microsoft.Hosting.Lifetime": "Information",
+            "Microsoft.Extensions.Hosting.Internal.Host": "Information"
+        }
     }
 }
 ```
