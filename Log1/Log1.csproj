@@ -5,6 +5,7 @@
 	<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
     <PackageDescription>This package adds support for customizing logging</PackageDescription>
     <RepositoryUrl>https://github.com/Hosch250/Log1</RepositoryUrl>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
